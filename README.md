@@ -1,8 +1,11 @@
 # DK Cricket Ops
 
-A responsive cricket tournament organiser app for fixtures, teams, payment tracking, expenses and finance summaries.
+A responsive cricket tournament organiser app for fixtures, weekend ground bookings, team payments, expenses and finance summaries.
 
 ## Features
+- Weekend schedule from October 2026 through February 2027, with Saturday/Sunday slots and fixed date/day/ground columns
+- Linked payment tracker: each fixture populates separate team payment statuses (Paid, Pending, Not Applicable)
+- Supports leather-ball matches, tennis-team bookings and ground booking notes
 - Dashboard for expected fees, payments received, expenses and net cash position
 - Match scheduling for AK Club DY Patil Ground, MCG Ground and Lords of Maval
 - Team registration and payment ledger with outstanding balances
