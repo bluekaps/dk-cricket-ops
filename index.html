@@ -44,7 +44,7 @@ function scheduleRow(id){return db.scheduleRows.find(r=>String(r.id)===String(id
 function setScheduleField(id,key,value){const r=scheduleRow(id);if(!r)return;r[key]=value;if(key==='date')r.day=dateDay(value);persistSchedule();if(key==='payA'||key==='payB')render()}
 function statusOptions(value){return ['Paid','Pending','Not Applicable'].map(x=>'<option'+(value===x?' selected':'')+'>'+x+'</option>').join('')}
 function groundOptions(value){return '<option value="">— Select ground —</option>'+['AK Club DY Patil Ground','MCG Ground','Lords of Maval'].map(x=>'<option value="'+esc(x)+'"'+(value===x?' selected':'')+'>'+esc(x)+'</option>').join('')}
-function scheduleTextInput(r,key,placeholder,extraClass){return '<input class="'+(extraClass||'')+'" value="'+esc(r[key]||'')+'" placeholder="'+esc(placeholder)+'" onchange="setScheduleField(\\''+esc(r.id)+'\\',\\''+key+'\\',this.value)" onblur="persistSchedule()">'}
+function scheduleTextInput(r,key,placeholder,extraClass){return '<input class="'+(extraClass||'')+'" value="'+esc(r[key]||'')+'" placeholder="'+esc(placeholder)+'" onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;'+key+'&quot;,this.value)" onblur="persistSchedule()">'}
 function renderSchedule(){
  const rows=[...db.scheduleRows].sort((a,b)=>a.date.localeCompare(b.date)||(+a.slot||0)-(+b.slot||0));
  const formHtml='<section class="panel"><h3>Add another booking / match slot</h3><form class="form" onsubmit="addScheduleRow(event)">'+
@@ -58,18 +58,18 @@ function renderSchedule(){
  '<label class="wide">Booking notes<input name="notes" placeholder="e.g. DC United booking, CT1 Bhushan booking"></label>'+
  '<button class="btn wide" type="submit">Add booking to schedule & payment tracker</button></form></section>';
  const tableRows=rows.map(r=>'<tr>'+
- '<td class="date-cell"><input type="date" value="'+esc(r.date)+'" onchange="setScheduleField(\\''+esc(r.id)+'\\',\\'date\\',this.value)" aria-label="Date"></td>'+
+ '<td class="date-cell"><input type="date" value="'+esc(r.date)+'" onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;date&quot;,this.value)" aria-label="Date"></td>'+
  '<td class="weekend-date">'+esc(dateDay(r.date))+'</td>'+
- '<td><select onchange="setScheduleField(\\''+esc(r.id)+'\\',\\'ground\\',this.value)">'+groundOptions(r.ground||'')+'</select></td>'+
+ '<td><select onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;ground&quot;,this.value)">'+groundOptions(r.ground||'')+'</select></td>'+
  '<td>'+scheduleTextInput(r,'time','Time')+'</td>'+
- '<td><select onchange="setScheduleField(\\''+esc(r.id)+'\\',\\'bookingType\\',this.value)">'+['Leather','Tennis','Ground Booking','Other'].map(x=>'<option'+(r.bookingType===x?' selected':'')+'>'+x+'</option>').join('')+'</select></td>'+
+ '<td><select onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;bookingType&quot;,this.value)">'+['Leather','Tennis','Ground Booking','Other'].map(x=>'<option'+(r.bookingType===x?' selected':'')+'>'+x+'</option>').join('')+'</select></td>'+
  '<td>'+scheduleTextInput(r,'tournament','Tournament / event')+'</td>'+
  '<td>'+scheduleTextInput(r,'a','Team A / group')+'</td>'+
  '<td>'+scheduleTextInput(r,'b','Team B')+'</td>'+
  '<td class="notes-cell">'+scheduleTextInput(r,'notes','Booking notes')+'</td>'+
- '<td><select onchange="setScheduleField(\\''+esc(r.id)+'\\',\\'payA\\',this.value)" aria-label="Team A payment">'+statusOptions(r.payA||'Pending')+'</select></td>'+
- '<td><select onchange="setScheduleField(\\''+esc(r.id)+'\\',\\'payB\\',this.value)" aria-label="Team B payment">'+statusOptions(r.payB||'Pending')+'</select></td>'+
- '<td><button class="subtle-btn" onclick="clearScheduleBooking(\\''+esc(r.id)+'\\')">Clear</button></td></tr>').join('');
+ '<td><select onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;payA&quot;,this.value)" aria-label="Team A payment">'+statusOptions(r.payA||'Pending')+'</select></td>'+
+ '<td><select onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;payB&quot;,this.value)" aria-label="Team B payment">'+statusOptions(r.payB||'Pending')+'</select></td>'+
+ '<td><button class="subtle-btn" onclick="clearScheduleBooking(&quot;'+esc(r.id)+'&quot;)">Clear</button></td></tr>').join('');
  const htmlTable='<div class="tablewrap"><table class="schedule-table"><thead><tr><th>Date</th><th>Day</th><th>Ground (fixed columns)</th><th>Time / slot</th><th>Type</th><th>Tournament / event</th><th>Team A / group</th><th>Team B</th><th>Notes / booking</th><th>Team A payment</th><th>Team B payment</th><th>Actions</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>';
  const booked=rows.filter(r=>(r.a||r.b||r.notes||r.ground==='MCG Ground'||r.ground==='Lords of Maval')&&r.date).length;
  return '<div class="cards">'+[['Weekend slots',rows.length],['Booked / noted slots',booked],['Tennis bookings',rows.filter(r=>r.bookingType==='Tennis'&&(r.a||r.b||r.notes)).length],['Grounds available',3]].map(x=>'<div class="card"><div class="muted">'+x[0]+'</div><div class="metric">'+x[1]+'</div></div>').join('')+'</div>'+
@@ -88,7 +88,7 @@ function renderPaymentTracker(){
   const slots=grouped[date];const a=slots[0]||{},b=slots[1]||{},extra=slots.slice(2);
   const team=(r,k)=>r&&r[k]?esc(r[k]):'—';
   const ground=(r)=>r&&r.ground?esc(r.ground):'<span class="muted">Reserved / unassigned</span>';
-  const pay=(r,k)=>r&&r[k]?'<select class="tracker-status" style="background:'+(r[k==='a'?'payA':'payB']==='Paid'?'#e5f7ef':r[k==='a'?'payA':'payB']==='Not Applicable'?'#eef0f4':'#fff2d7')+'" onchange="setScheduleField(\\''+esc(r.id)+'\\',\\''+(k==='a'?'payA':'payB')+'\\',this.value)">'+statusOptions(r[k==='a'?'payA':'payB']||'Pending')+'</select>':'<span class="muted">—</span>';
+  const pay=(r,k)=>r&&r[k]?'<select class="tracker-status" style="background:'+(r[k==='a'?'payA':'payB']==='Paid'?'#e5f7ef':r[k==='a'?'payA':'payB']==='Not Applicable'?'#eef0f4':'#fff2d7')+'" onchange="setScheduleField(&quot;'+esc(r.id)+'&quot;,&quot;'+(k==='a'?'payA':'payB')+'&quot;,this.value)">'+statusOptions(r[k==='a'?'payA':'payB']||'Pending')+'</select>':'<span class="muted">—</span>';
   let main='<tr><td><b>'+esc(dateLabel(date))+'</b><span class="booking-note">'+esc(dateDay(date))+'</span></td><td>'+ground(a)+'<span class="booking-note">'+esc(a.time||'')+'</span></td><td>'+team(a,'a')+'</td><td>'+pay(a,'a')+'</td><td>'+team(a,'b')+'</td><td>'+pay(a,'b')+'</td><td>'+ground(b)+'<span class="booking-note">'+esc(b.time||'')+'</span></td><td>'+team(b,'a')+'</td><td>'+pay(b,'a')+'</td><td>'+team(b,'b')+'</td><td>'+pay(b,'b')+'</td><td>'+[a.notes,b.notes].filter(Boolean).map(esc).join(' · ')+'</td></tr>';
   extra.forEach((x,i)=>{main+='<tr><td><span class="muted">Extra slot '+(i+3)+'</span></td><td>'+ground(x)+'<span class="booking-note">'+esc(x.time||'')+'</span></td><td>'+team(x,'a')+'</td><td>'+pay(x,'a')+'</td><td>'+team(x,'b')+'</td><td>'+pay(x,'b')+'</td><td colspan="5"><span class="muted">Additional booking</span></td><td>'+esc(x.notes||'')+'</td></tr>'});
   return main;
