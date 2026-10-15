@@ -82,7 +82,7 @@ function getTrackerRows(){
   return {r,tennis,matches:matches.slice(0,2)};
  }).filter(x=>x.tennis||x.matches.length);
 }
-function trackerSelect(r,slot,side){const val=payValue(r,slot,side);return '<select class="'+statusClass(val)+'" data-payment="'+esc(payKey(r,slot,side))+'">'+selectHtml(val,paymentOptions).replace(/^<select[^>]*>|<\\/select>$/g,'')+'</select>'}
+function trackerSelect(r,slot,side){const val=payValue(r,slot,side);const opts=selectHtml(val,paymentOptions).slice(selectHtml(val,paymentOptions).indexOf('>')+1).replace('</select>','');return '<select class="'+statusClass(val)+'" data-payment="'+esc(payKey(r,slot,side))+'">'+opts+'</select>'}
 function trackerTeam(r,slot,side,name){return '<td>'+ (name?esc(name):'<span class="small">—</span>')+'</td><td>'+ (name?trackerSelect(r,slot,side):'<span class="small">—</span>')+'</td>'}
 function renderTracker(){
  const all=getTrackerRows();const rows=all.filter(x=>!searchText||JSON.stringify(x).toLowerCase().includes(searchText.toLowerCase()));
@@ -92,9 +92,9 @@ function renderTracker(){
  '<div class="notice">Payments are linked to the fixture slot. Change a team status here or edit the fixture in Ground Schedule; payment options are <b>Pending / Paid / Not Applicable</b>. Green = Paid, orange = Pending.</div>'+
  '<div class="table-wrap"><table class="grid tracker"><thead><tr>'+heads.map((c,i)=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>';
 }
-function buildFixtures(){
- const all=[];let n=1;
- Object.entries(teamLists).forEach(([tour,teams])=>{const list=[...new Set(teams)];let round=1;for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++)all.push({tournament:tour,round:round++,matchNo:n++,a:list[i],b:list[j],fixture:list[i]+' vs '+list[j],date:'',ground:'',time:'',status:'To Be Scheduled',payA:'Pending',payB:'Pending',notes:''})});
+function buildFixtures(lists){
+ const all=[];let n=1;const source=lists||teamLists;
+ Object.entries(source).forEach(([tour,teams])=>{const list=[...new Set(teams)];let round=1;for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++)all.push({tournament:tour,round:round++,matchNo:n++,a:list[i],b:list[j],fixture:list[i]+' vs '+list[j],date:'',ground:'',time:'',status:'To Be Scheduled',payA:'Pending',payB:'Pending',notes:''})});
  return all;
 }
 function renderTeams(){
@@ -132,7 +132,7 @@ document.addEventListener('input',e=>{
  if(t.dataset.row&&t.dataset.slot!==undefined){const r=db.schedule.find(x=>x.id===t.dataset.row);if(r){r.slots[+t.dataset.slot]=t.value;save()}return}
  if(t.dataset.row&&t.dataset.tournament!==undefined){const r=db.schedule.find(x=>x.id===t.dataset.row);if(r){r.tournaments[+t.dataset.tournament]=t.value;save()}return}
  if(t.dataset.row&&t.dataset.key){if(['date','ground','status'].includes(t.dataset.key))return;updateRow(t.dataset.row,t.dataset.key,t.value);return}
- if(t.dataset.teamlist){db.teams[t.dataset.teamlist]=t.value.split('\\n').map(x=>x.trim()).filter(Boolean);db.fixtures=buildFixtures();save();return}
+ if(t.dataset.teamlist){db.teams[t.dataset.teamlist]=t.value.split('\\n').map(x=>x.trim()).filter(Boolean);db.fixtures=buildFixtures(db.teams);save();return}
  if(t.dataset.fixture&&t.dataset.key){const x=db.fixtures.find(y=>String(y.matchNo)===t.dataset.fixture);if(x){x[t.dataset.key]=t.value;if(['a','b'].includes(t.dataset.key))x.fixture=x.a+' vs '+x.b;save()}return}
  if(t.id==='scheduleSearch'||t.id==='trackerSearch'||t.id==='fixtureSearch'){searchText=t.value;const pos=t.selectionStart;render();const again=document.getElementById(t.id);if(again){again.focus();again.setSelectionRange(pos,pos)}}
 });
