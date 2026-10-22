@@ -48,7 +48,7 @@ function freshRows(){
  return out;
 }
 function freshDb(){return {schedule:freshRows(),payments:{},teams:clone(teamLists),fixtures:buildFixtures(),version:2}}
-function loadDb(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&d.schedule&&d.schedule.length)return d}catch(e){}return freshDb()}
+function loadDb(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&d.schedule&&d.schedule.length){if(!d.payments)d.payments={};if(!d.teams)d.teams=clone(teamLists);if(!d.fixtures)d.fixtures=buildFixtures(d.teams);d.schedule.forEach(r=>{if(r.ground==='MCG Ground')r.ground=grounds[1]});const dates=[...new Set(d.schedule.map(r=>r.date))];dates.forEach(date=>{let rows=d.schedule.filter(r=>r.date===date);const blank=rows.find(r=>!r.ground);if(blank)blank.ground=grounds[1];rows=d.schedule.filter(r=>r.date===date);grounds.forEach((g,n)=>{if(!rows.some(r=>r.ground===g))d.schedule.push({id:date+'-'+n,date,day:dayName(date),ground:g,slots:['','','','','','',''],notes:'',status:'Available',tournaments:['','','','',''],payments:''})})});d.schedule.sort((a,b)=>a.date.localeCompare(b.date)||grounds.indexOf(a.ground)-grounds.indexOf(b.ground));localStorage.setItem(KEY,JSON.stringify(d));return d}}catch(e){}return freshDb()}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));renderSummary()}
 function dayName(date){if(!date)return '';return new Date(date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long'})}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
